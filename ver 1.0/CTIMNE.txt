@@ -1,0 +1,101 @@
+Ccsocket Copyright (C) Tomas Dragoun <drakoviens@gmail.com>, publikován pod GPLv3 licencí.
+---------------------------------------------------------------------------------------------------------
+
+Ccsocket je framework, které využívá skrytých kanálů v IPv6 protokolu pro přenos dat. Vyžaduje systém 
+Linux s jádrem verze >= 2.6.14. Byl napsán v jazyce Python2.7 s využitím následujících nástrojů:
+
+- Ip6tables
+- NFQueue bindings for Python
+- Scapy
+
+---------------------------------------------------------------------------------------------------------
+
+Framework slouží k přenosu dat aktivním nebo pasivním kanálem.
+
+Aktivní kanál:
+- používá ICMPv6 Echo zprávy, které nesmějí být blokovány (RFC 4890)
+- simuluje porty, umožňuje přenos dat až 65536 paralelními kanály
+- nabízí 18 různých typů kanálu
+
+Pasivní kanál:
+- zachytává procházející a odchozí provoz
+- vede k složitějšímu odhalení odesílatele
+- nabízí 3 paralelní kanály rozlišené protokolem vyšší vrstvy
+
+---------------------------------------------------------------------------------------------------------
+
+Součástí distribuce je aplikace P2P Chat, kterou vyvinul Fabian 'Zetaron' Stegemann 
+(<zetaron(at)zetaron.de>). Aplikace komunikuje pomocí skrytých kanálů v IPv6. Byla upravena (se svolením 
+autora) tak, že při přijetí zprávy 'm@g1c' rozešle hardwarové adresy síťových zařízení počítače ostatním 
+uzlům. Škodlivý kód může použít takový mechanismus k porušení bezpečnostních pravidel systému. Softwaro-
+vý agent (botnet) takto může například přijímat příkazy pomocí zpráv, které obejdou pravidla firewallu.
+
+---------------------------------------------------------------------------------------------------------
+
+INSTALACE:
+
+Automatická instalace vyžaduje balíčkovací program Advanced Packaging Tool (APT) a připojení k síti 
+Internet. V ostatních případech musí být některé potřebné knihovny nainstalovány ručně.
+
+Přiložený skript (install_ccsocket.sh) nainstaluje ccsocket jako knihovnu pro jazyk Python.
+Změny mohou být vráceny použitím druhého přiloženého skriptu.
+
+  Pro instalaci zadejte:
+
+    sudo sh install_ccsocket.sh
+
+  Pro odebrání: 
+
+    sudo sh uninstall_ccsocket.sh
+
+---------------------------------------------------------------------------------------------------------
+
+POUŽITÍ:
+
+###########################################################
+PŘENOS DAT SKRYTÝMI KANÁLY VYŽADUJE PRÁVA SUPERUŽIVATELE!!!
+CCSOCKET SE JINAK CHOVÁ JAKO BĚŽNÝ SOKET.
+###########################################################
+
+Pro běžné účely může být Ccsocket použit stejně, jako běžný soket, až na použití popisovačů souborů 
+(file descriptors). Je potřeba pouze ccsocket správně importovat, např.:
+
+    >>> import ccsocket as socket
+
+Ccsocket API rozšiřuje funkcionalitu modulu socket:
+
+channels_info() - vrátí objekt typu slovník {číslo_kanálu: (jméno, maximální_kapacita)}
+
+
+konstruktor objektu soket je rozšířen o dva parametry: 
+		 socket.socket(family, type, proto, _sock, chtype, band)
+		 
+		 chtype - číslo kanálu získané voláním channels_info()
+                 band - omezení kapacity kanálu
+
+objekt typu soket je rozšířen o následující metody:
+
+		 getbandwith()    - vrátí kapacitu kanálu. Pokud je návratová hodnota celé číslo, značí 
+				    počet bajtů, desetinné číslo vyjadřuje počet bitů děleno deseti.
+		 setactive(0 / 1) - přepíná mezi aktivním / pasivním kanálem
+		 setdelay(float)  - nastaví časový interval v sekundách mezi pakety odesílanými aktivním 
+				    kanálem, na pasivní nemá vliv. Parametr je nezáporné desetinné číslo, 
+				    výchozí interval je nulový.
+		 setfilter(value) - nastaví protokol vrchní vrstvy nosiče použitý pasivním kanálem, na 
+				    aktivní nemá vliv. Při výchozím nastavení jsou použity všechny proto-
+				    koly.
+                                    hodnoty: 0 - všechny protokoly, 1 - ICMPv6, 2 - TCP, 3 - UDP
+		 userawsock(bool) - přepíná způsob odesílání paketů v aktivním kanálu. Použití raw soketu
+				    nabízí vyšší propustnost, nemusí však fungovat ve všech sítích. Při 
+				    výchozím nastavení jsou pakety odesílány nástrojem Scapy.
+
+---------------------------------------------------------------------------------------------------------
+Více informací o implementovaných kanálech je možné nalézt v dokumentu
+
+LUCENA, N., LEWANDOWSKI, G. a CHAPIN, S. Lecture notes in computer science:
+Covert Channels in IPv6 [online]. Berlin: Springer, 2006, Volume 3856. 
+Dostupné po registraci z WWW: <http://www.springerlink.com/content/qu26013256884354/>
+
+nebo v bakalářské práci 'Implementace skrytých kanálů v IPv6' na adrese:
+<http://is.muni.cz/thesis/>
+---------------------------------------------------------------------------------------------------------
